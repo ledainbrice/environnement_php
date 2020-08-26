@@ -4,8 +4,8 @@ services:
     build:
       context: ./
       dockerfile: ./docker-compose/php/Dockerfile
-    image: travellist
-    container_name: travellist-app2
+    image: imocaphp
+    container_name: imocaphp
     restart: unless-stopped
     tty: true
     working_dir: /app/
@@ -14,11 +14,11 @@ services:
     volumes:
       - ./app/:/app
     networks:
-      - travellist
+      - imoca_network
 
   db:
     image: mysql:5.7
-    container_name: travellist-db
+    container_name: imoca-db
     restart: unless-stopped
     environment:
       MYSQL_DATABASE: ${DB_DATABASE}
@@ -30,7 +30,7 @@ services:
     volumes:
       - ./storage/mysql:/var/lib/mysql
     networks:
-      - travellist
+      - imoca_network
 
   myadmin:
     image: phpmyadmin/phpmyadmin
@@ -44,8 +44,8 @@ services:
     depends_on:
       - db
     networks:
-        - travellist
+        - imoca_network
 
 networks:
-  travellist:
+  imoca_network:
     driver: bridge
