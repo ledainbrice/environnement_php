@@ -2,18 +2,17 @@ version: "3.7"
 services:
   app:
     build:
-      args:
-        user: sammy
-        uid: 1000
       context: ./
-      dockerfile: Dockerfile
+      dockerfile: ./docker-compose/php/Dockerfile
     image: travellist
-    container_name: travellist-app
+    container_name: travellist-app2
     restart: unless-stopped
     tty: true
-    working_dir: /var/www/
+    working_dir: /app/
+    ports:
+      - 8000:80
     volumes:
-      - ./:/var/www
+      - ./app/:/app
     networks:
       - travellist
 
@@ -46,18 +45,6 @@ services:
       - db
     networks:
         - travellist
-
-  nginx:
-    image: nginx:alpine
-    container_name: travellist-nginx
-    restart: unless-stopped
-    ports:
-      - 8000:80
-    volumes:
-      - ./:/var/www
-      - ./docker-compose/nginx:/etc/nginx/conf.d/
-    networks:
-      - travellist
 
 networks:
   travellist:
