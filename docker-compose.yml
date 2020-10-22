@@ -1,51 +1,83 @@
 version: "3.7"
 services:
-  app:
-    build:
-      context: ./
-      dockerfile: ./docker-compose/php/Dockerfile
-    image: imocaphp
-    container_name: imocaphp
-    restart: unless-stopped
-    tty: true
-    working_dir: /app/
-    ports:
-      - 8000:80
-    volumes:
-      - ./app/:/app
-    networks:
-      - imoca_network
+    app:
+        build:
+            args:
+                user: sammy
+                uid: 1000
+            context: ./
+            dockerfile: Dockerfile
+        image: travellist
+        container_name: travellist-app
+        restart: unless-stopped
+        working_dir: /var/www/
+        volumes:
+            - ./:/var/www
+        networks:
+            - travellist
 
-  db:
-    image: mysql:5.7
-    container_name: imoca-db
-    restart: unless-stopped
-    environment:
-      MYSQL_DATABASE: ${DB_DATABASE}
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-      MYSQL_USER: ${DB_USERNAME}
-      SERVICE_TAGS: dev
-      SERVICE_NAME: mysql
-    volumes:
-      - ./storage/mysql:/var/lib/mysql
-    networks:
-      - imoca_network
+    db:
+        image: mysql:5.7
+        container_name: travellist-db
+        restart: unless-stopped
+        environment:
+            MYSQL_DATABASE: ${DB_DATABASE}
+            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+            MYSQL_PASSWORD: ${DB_PASSWORD}
+            MYSQL_USER: ${DB_USERNAME}
+            SERVICE_TAGS: dev
+            SERVICE_NAME: mysql
+        volumes:
+            - ./docker-compose/mysql:/docker-entrypoint-initdb.d
+        networks:
+            - travellist
 
-  myadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: phpmyadmin
-    ports:
-      - "8080:80"
-    environment:
-      - PMA_ARBITRARY=1
-      - PMA_HOST=db
-    restart: always
-    depends_on:
-      - db
-    networks:
-        - imoca_network
+    elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.9.2
+        container_name: es01
+        environment:
+            - node.name=es01
+            - cluster.name=es-docker-cluster
+            - discovery.seed_hosts=es02,es03
+            - cluster.initial_master_nodes=es01,es02,es03
+            - bootstrap.memory_lock=true
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+        volumes:
+            - ./data/elasticsearch:/usr/share/elasticsearch/data
+        ports:
+            - 9200:9200
+        networks:
+            - travellist
 
+    nginx:
+        image: nginx:alpine
+        container_name: travellist-nginx
+        restart: unless-stopped
+        ports:
+            - 8000:80
+        volumes:
+            - ./:/var/www
+            - ./docker-compose/nginx:/etc/nginx/conf.d/
+        networks:
+            - travellist
+
+    myadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: phpmyadmin
+        ports:
+            - "8080:80"
+        environment:
+            - PMA_ARBITRARY=1
+            - PMA_HOST=db
+        restart: always
+        depends_on:
+            - db
+        networks:
+            - travellist
 networks:
-  imoca_network:
-    driver: bridge
+    travellist:
+        driver: bridge

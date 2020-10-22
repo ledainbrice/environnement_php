@@ -1,11 +1,9 @@
+# Travellist - Laravel Demo App
 
-démarrer l'env de dev:
-- docker-compose up -d
+This is a Laravel demo application.
 
-l'arrêter avec:
-- docker-compose down
+Relevant Tutorials:
+
+- [How to Install and Configure Laravel with LEMP on Ubuntu 18.04](https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-laravel-with-lemp-on-ubuntu-18-04)
 
 
-pour executer une commande dans un service: 
-- docker-compose exec -ti app bash
-- docker-compose exec app artisan migrate 
